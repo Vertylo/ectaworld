@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ectaworld</title>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css"
+    />
+    <style>
+      body {
+        background-color: #1b1e2b;
+        height: 100vh;
+        display: flex;
+      }
+
+      #content {
+        background: #292d3e;
+        color: #b0c9d3;
+        width: 400px;
+        margin: auto;
+        padding: 3rem 3rem 2rem 3rem;
+        border-radius: 10px;
+      }
+
+      #go {
+        margin: 2.5rem 0 1.5rem 0;
+      }
+
+      input {
+        color: white;
+        font-size: 13px;
+      }
+
+      #error {
+        font-size: 13px;
+        color: rgb(227, 68, 68);
+      }
+      #success {
+        font-size: 13px;
+        color: rgb(26, 190, 37);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="content">
+      <div>
+        <input id="buildname" type="text" class="validate" value="Lace" />
+        <label for="buildname">Nom du build</label>
+        <input
+          id="newvalue"
+          type="text"
+          class="validate"
+          value="Resplendent Anima-Infused Keepsake"
+        />
+        <label for="newvalue">L'item qui remplace</label>
+        <input
+          id="oldvalue"
+          type="text"
+          class="validate"
+          value="Resplendent Anima-Infused Keepsake"
+        />
+        <label for="oldvalue">L'item à remplacer</label>
+      </div>
+      <a id="go" class="waves-effect waves-light btn">Let's go</a>
+      <p id="error"></p>
+      <p id="success"></p>
+    </div>
+
+    <script>
+      document.getElementById("go").addEventListener("click", async () => {
+        document.getElementById("error").innerText = "";
+        document.getElementById("success").innerText = "";
+
+        const oldBuild = await navigator.clipboard.readText();
+        const buildName = document.getElementById("buildname").value;
+        const oldValue = document.getElementById("oldvalue").value;
+        const newValue = document.getElementById("newvalue").value;
+        if (!buildName.length || !oldValue.length || !newValue.length)
+          return setError("Erreur: Tous les champs doivent être remplis.");
+        const checkClip = oldBuild.match(`~SUBARC~`);
+        if (!checkClip)
+          return setError("Erreur: Le build séléctionné n'est pas valide.");
+        const buildId = oldBuild.match(`BUILD([0-9]+)_Name[|]${buildName}`);
+        if (!buildId)
+          return setError("Erreur: Le nom du build est introuvable.");
+        const infoBuild = oldBuild.match(
+          `BUILD${buildId[1]}_BUILD.+(${newValue})~([0-9]+)~([^~]+)~([^~]+)~([0-9]+)~(rdb:[0-9]+:[0-9]+)`
+        );
+        if (!infoBuild)
+          return setError(
+            "Erreur: L'item qui doit remplacer est introuvable dans le build."
+          );
+        const nbItem = oldBuild.match(new RegExp(`${oldValue}~[^%]+`, "g"));
+        if (!nbItem)
+          return setError("Erreur: L'item à remplacer est introuvable.");
+        const newBuild = oldBuild.replace(
+          new RegExp(`${oldValue}~[^%]+`, "g"),
+          `${infoBuild[1]}~${infoBuild[2]}~${infoBuild[3]}~${infoBuild[4]}~${infoBuild[5]}~${infoBuild[6]}`
+        );
+        const data = await navigator.clipboard.writeText(newBuild);
+        document.getElementById("success").innerText = "Victory.";
+      });
+
+      function setError(message) {
+        document.getElementById("error").innerText = message;
+      }
+    </script>
+  </body>
+</html>
