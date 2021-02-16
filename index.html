@@ -47,11 +47,21 @@
   <body>
     <div id="content">
       <div>
-        <input id="buildname" type="text" class="validate" />
+        <input id="buildname" type="text" class="validate" value="Lace" />
         <label for="buildname">Nom du build</label>
-        <input id="newvalue" type="text" class="validate" />
+        <input
+          id="newvalue"
+          type="text"
+          class="validate"
+          value="Resplendent Anima-Infused Keepsake"
+        />
         <label for="newvalue">L'item qui remplace</label>
-        <input id="oldvalue" type="text" class="validate" />
+        <input
+          id="oldvalue"
+          type="text"
+          class="validate"
+          value="Resplendent Anima-Infused Keepsake"
+        />
         <label for="oldvalue">L'item à remplacer</label>
       </div>
       <a id="go" class="waves-effect waves-light btn">Let's go</a>
@@ -73,11 +83,13 @@
         const checkClip = oldBuild.match(`~SUBARC~`);
         if (!checkClip)
           return setError("Erreur: Le build séléctionné n'est pas valide.");
-        const buildId = oldBuild.match(`BUILD([0-9]+)_Name[|]${buildName}`);
+        const buildId = oldBuild.match(
+          `[|]((QUICK)?BUILD[0-9]+)_Name[|]${buildName}`
+        );
         if (!buildId)
           return setError("Erreur: Le nom du build est introuvable.");
         const infoBuild = oldBuild.match(
-          `BUILD${buildId[1]}_BUILD.+(${newValue})~([0-9]+)~([^~]+)~([^~]+)~([0-9]+)~(rdb:[0-9]+:[0-9]+)`
+          `${buildId[1]}_BUILD.*?(${newValue}[^%]+)`
         );
         if (!infoBuild)
           return setError(
@@ -88,10 +100,10 @@
           return setError("Erreur: L'item à remplacer est introuvable.");
         const newBuild = oldBuild.replace(
           new RegExp(`${oldValue}~[^%]+`, "g"),
-          `${infoBuild[1]}~${infoBuild[2]}~${infoBuild[3]}~${infoBuild[4]}~${infoBuild[5]}~${infoBuild[6]}`
+          `${infoBuild[1]}`
         );
-        const data = await navigator.clipboard.writeText(newBuild);
         document.getElementById("success").innerText = "Victory.";
+        const data = await navigator.clipboard.writeText(newBuild);
       });
 
       function setError(message) {
